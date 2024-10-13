@@ -7,23 +7,22 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/chauhanpranay19/NewsWebsite.git'
             }
         }
-       stage('SonarQube Analysis') {
-    steps {
-        script {
-            // Get the SonarScanner installation
-            def scannerHome = tool 'SonarQubeScanner' 
-            echo "SonarQube Scanner Home: ${scannerHome}"
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    // Get the SonarScanner installation
+                    def scannerHome = tool 'SonarQubeScanner' 
+                    echo "SonarQube Scanner Home: ${scannerHome}"
 
-            // Fetch the SonarQube token from Jenkins credentials
-            def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
-            
-            withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
-                bat "${scannerHome}\\sonar-scanner.bat -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
+                    // Fetch the SonarQube token from Jenkins credentials
+                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
+                    
+                    withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
+                        bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
+                    }
+                }
             }
         }
-    }
-}
-
         stage('Test') {
             steps {
                 echo 'Running tests...'
