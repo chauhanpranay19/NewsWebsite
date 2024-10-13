@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',git 'https://github.com/chauhanpranay19/NewsWebsite.git'
+                // Correct git step with branch specified
+                git branch: 'main', url: 'https://github.com/chauhanpranay19/NewsWebsite.git'
             }
         }
         stage('Build') {
@@ -24,3 +25,4 @@ pipeline {
         }
     }
 }
+
