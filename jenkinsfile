@@ -10,20 +10,17 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the project...'
-                // Maven build command
-                bat 'mvn clean package'
+                // Assuming you have a build tool or process, e.g., npm
+                // Uncomment the line below if you're using npm
+                // bat 'npm install'
             }
         }
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Get the SonarScanner installation
                     def scannerHome = tool 'SonarQubeScanner' 
-                    
-                    // Fetch the SonarQube token from Jenkins credentials
-                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
-                    
-                    withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
+                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db')
+                    withSonarQubeEnv('SonarQube server') {
                         bat "${scannerHome}\\bin\\sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
                     }
                 }
@@ -32,16 +29,29 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Maven test command
-                bat 'mvn test'
+                // You might want to use a testing framework for JS, like Jest or Mocha
+                // Uncomment the line below if you're using npm
+                // bat 'npm test'
             }
         }
         stage('Deploy') {
             steps {
                 echo 'Deploying the project...'
                 // Add your deployment commands here
-                // Example: bat 'aws s3 cp target/myapp.jar s3://mybucket/' // For AWS S3 deployment
+                // For example, you could use a tool like rsync, FTP, or deploy to a service like Netlify or Vercel
             }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline completed!'
+            // Optionally notify on Slack or email
+        }
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
