@@ -4,13 +4,23 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Correct git step with branch specified
                 git branch: 'main', url: 'https://github.com/chauhanpranay19/NewsWebsite.git'
             }
         }
         stage('Build') {
             steps {
                 echo 'Building the project...'
+                // Add your build commands here (e.g., mvn package, npm build)
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner' // Make sure SonarScanner is installed in Jenkins
+                    withSonarQubeEnv('SonarQube') { // Use the name of your SonarQube server configured in Jenkins
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=your_sonarqube_token"
+                    }
+                }
             }
         }
         stage('Test') {
@@ -25,4 +35,3 @@ pipeline {
         }
     }
 }
-
