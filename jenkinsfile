@@ -7,53 +7,18 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/chauhanpranay19/NewsWebsite.git'
             }
         }
-<<<<<<< HEAD
 
         stage('Test') {
             steps {
                 echo 'Running tests...'
                 // Add actual test commands here if needed
-=======
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    // Get the SonarScanner installation
-                    def scannerHome = "C:\\Users\\chauh\\Downloads\\sonar-scanner-cli-6.2.1.4610-windows-x64\\sonar-scanner-6.2.1.4610-windows-x64\\bin"
-
-                    echo "SonarQube Scanner Home: ${scannerHome}"
-
-                    // Check if sonar-scanner.bat exists
-                    bat "IF NOT EXIST ${scannerHome}\\sonar-scanner.bat (echo Scanner not found & exit /B 1)"
-
-                    // Fetch the SonarQube token from Jenkins credentials
-                    def sonarToken = credentials('sqp_e1df353c87dc8b222034275bd6ad624bd0b2aa38') // Use your actual credential ID
-                   
-                    withSonarQubeEnv('SonarQube server') {
-                        bat """
-                        ${scannerHome}\\sonar-scanner.bat ^
-                        -Dsonar.projectKey=my_org:NewsWebsite ^
-                        -Dsonar.projectName="News Website" ^
-                        -Dsonar.host.url=http://localhost:9000 ^
-                        -Dsonar.login=${sonarToken}
-                        """
-                    }
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
->>>>>>> d514eb0c904c08a486860a9a2887036378a34327
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploying the project...'
-<<<<<<< HEAD
                 // Add actual deployment steps here if needed
-=======
->>>>>>> d514eb0c904c08a486860a9a2887036378a34327
             }
         }
     }
@@ -67,3 +32,4 @@ pipeline {
         }
     }
 }
+
