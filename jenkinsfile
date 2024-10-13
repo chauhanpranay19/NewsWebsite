@@ -7,20 +7,17 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/chauhanpranay19/NewsWebsite.git'
             }
         }
-        stage('Build') {
-            steps {
-                echo 'Building the project...'
-                // Assuming you have a build tool or process, e.g., npm
-                // Uncomment the line below if you're using npm
-                // bat 'npm install'
-            }
-        }
         stage('SonarQube Analysis') {
             steps {
                 script {
+                    // Get the SonarScanner installation
                     def scannerHome = tool 'SonarQubeScanner' 
-                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db')
-                    withSonarQubeEnv('SonarQube server') {
+                    
+                    // Fetch the SonarQube token from Jenkins credentials
+                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
+                    
+                    withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
+                        // Run SonarQube scanner with correct syntax
                         bat "${scannerHome}\\bin\\sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
                     }
                 }
@@ -29,8 +26,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // You might want to use a testing framework for JS, like Jest or Mocha
-                // Uncomment the line below if you're using npm
+                // Here you can add your testing commands, if applicable
+                // For example, if you have a JavaScript testing framework like Jest or Mocha:
                 // bat 'npm test'
             }
         }
@@ -38,20 +35,8 @@ pipeline {
             steps {
                 echo 'Deploying the project...'
                 // Add your deployment commands here
-                // For example, you could use a tool like rsync, FTP, or deploy to a service like Netlify or Vercel
+                // Example: bat 'aws s3 cp index.html s3://mybucket/' // For AWS S3 deployment
             }
-        }
-    }
-    post {
-        always {
-            echo 'Pipeline completed!'
-            // Optionally notify on Slack or email
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
