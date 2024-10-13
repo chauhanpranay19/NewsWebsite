@@ -14,6 +14,9 @@ pipeline {
                     def scannerHome = 'C:\\Users\\chauh\\Downloads\\sonar-scanner-cli-6.2.1.4610-windows-x64\\sonar-scanner-6.2.1.4610-windows-x64' 
                     echo "SonarQube Scanner Home: ${scannerHome}"
 
+                    // Check if sonar-scanner.bat exists
+                    bat "IF NOT EXIST ${scannerHome}\\bin\\sonar-scanner.bat (echo Scanner not found & exit /B 1)"
+
                     // Fetch the SonarQube token from Jenkins credentials
                     def sonarToken = credentials('sqp_e1df353c87dc8b222034275bd6ad624bd0b2aa38') // Use your actual credential ID
                    
@@ -21,7 +24,7 @@ pipeline {
                         bat """
                         ${scannerHome}\\bin\\sonar-scanner.bat ^
                         -Dsonar.projectKey=my_org:NewsWebsite ^
-                        -Dsonar.projectName='News Website' ^
+                        -Dsonar.projectName="News Website" ^
                         -Dsonar.host.url=http://localhost:9000 ^
                         -Dsonar.login=${sonarToken}
                         """
