@@ -15,8 +15,8 @@ pipeline {
                     echo "SonarQube Scanner Home: ${scannerHome}"
 
                     // Fetch the SonarQube token from Jenkins credentials
-                    def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
-                    
+                    def sonarToken = credentials('sqp_e1df353c87dc8b222034275bd6ad624bd0b2aa38') // Use your actual credential ID
+                   
                     withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
                         bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
                     }
@@ -27,15 +27,12 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 // Here you can add your testing commands, if applicable
-                // For example, if you have a JavaScript testing framework like Jest or Mocha:
-                // bat 'npm test'
             }
         }
         stage('Deploy') {
             steps {
                 echo 'Deploying the project...'
                 // Add your deployment commands here
-                // Example: bat 'aws s3 cp index.html s3://mybucket/' // For AWS S3 deployment
             }
         }
     }
