@@ -11,7 +11,7 @@ pipeline {
             steps {
                 echo 'Building the project...'
                 // Maven build command
-                sh 'mvn clean package'
+                bat 'mvn clean package'
             }
         }
         stage('SonarQube Analysis') {
@@ -24,7 +24,7 @@ pipeline {
                     def sonarToken = credentials('a44ec19a-7f47-4877-863b-28a3ab6338db') // Replace with your actual credential ID
                     
                     withSonarQubeEnv('SonarQube server') { // Use the name of your SonarQube server configured in Jenkins
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
+                        bat "${scannerHome}\\bin\\sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${sonarToken}"
                     }
                 }
             }
@@ -33,14 +33,14 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 // Maven test command
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
         stage('Deploy') {
             steps {
                 echo 'Deploying the project...'
                 // Add your deployment commands here
-                // Example: sh 'aws s3 cp target/myapp.jar s3://mybucket/' // For AWS S3 deployment
+                // Example: bat 'aws s3 cp target/myapp.jar s3://mybucket/' // For AWS S3 deployment
             }
         }
     }
