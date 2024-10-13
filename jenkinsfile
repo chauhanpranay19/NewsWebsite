@@ -16,9 +16,10 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarScanner' // Make sure SonarScanner is installed in Jenkins
+                    def scannerHome = tool 'SonarQubeScanner' // Make sure SonarScanner is installed in Jenkins
                     withSonarQubeEnv('SonarQube') { // Use the name of your SonarQube server configured in Jenkins
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=your_sonarqube_token"
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my_org:NewsWebsite -Dsonar.projectName='News Website' -Dsonar.host.url=http://localhost:9000 -Dsonar.login=
+sqp_216444ec07ad64a25c8693a789e3690466f4e6f4"
                     }
                 }
             }
