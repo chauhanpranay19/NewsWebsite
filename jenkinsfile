@@ -10,7 +10,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the project...'
-                // Add your build commands here (e.g., mvn package, npm build)
+                // Maven build command
+                sh 'mvn clean package'
             }
         }
         stage('SonarQube Analysis') {
@@ -31,11 +32,15 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
+                // Maven test command
+                sh 'mvn test'
             }
         }
         stage('Deploy') {
             steps {
                 echo 'Deploying the project...'
+                // Add your deployment commands here
+                // Example: sh 'aws s3 cp target/myapp.jar s3://mybucket/' // For AWS S3 deployment
             }
         }
     }
