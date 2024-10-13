@@ -11,7 +11,8 @@ pipeline {
             steps {
                 script {
                     // Get the SonarScanner installation
-                    def scannerHome = 'C:\\Users\\chauh\\Downloads\\sonar-scanner-cli-6.2.1.4610-windows-x64\\sonar-scanner-6.2.1.4610-windows-x64' 
+                    def scannerHome = C:\Users\chauh\Downloads\sonar-scanner-cli-6.2.1.4610-windows-x64\sonar-scanner-6.2.1.4610-windows-x64\bin\sonar-scanner.bat
+' 
                     echo "SonarQube Scanner Home: ${scannerHome}"
 
                     // Check if sonar-scanner.bat exists
