@@ -21,6 +21,7 @@ pipeline {
             steps {
                 echo "Building Docker image ${imageName}..."
                 script {
+                    // Use double quotes to expand the variable
                     bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
                 }
             }
