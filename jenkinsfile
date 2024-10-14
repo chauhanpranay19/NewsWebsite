@@ -20,21 +20,21 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image ${imageName}..."
-                script {
-                    // Use double quotes to expand the variable
-                    bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
-                }
+                // Use double quotes to allow variable expansion
+                bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
             }
         }
         stage('Deploy Docker Container') {
             steps {
                 echo 'Stopping and removing existing container newswebsite_container if it exists...'
-                script {
+                script { // This is correctly defined as a script block
                     bat '''
                     docker ps -q --filter name=newswebsite_container | findstr . && docker stop newswebsite_container || echo No running container to stop
                     docker ps -a -q --filter name=newswebsite_container | findstr . && docker rm newswebsite_container || echo No container to remove
                     '''
-                    echo "Deploying Docker container newswebsite_container..."
+                }
+                echo "Deploying Docker container newswebsite_container..."
+                script {
                     bat "docker run -d --name newswebsite_container -p 80:80 ${imageName} || echo 'Docker run failed.'"
                 }
             }
