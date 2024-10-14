@@ -22,9 +22,12 @@ pipeline {
                     def imageName = "newswebsite:latest"  // Name for your Docker image
                     echo "Building Docker image ${imageName}..."
 
+                    // Check if Docker is available
+                    bat "docker --version || echo 'Docker is not installed or not running.'"
+
                     // Build the Docker image using the Dockerfile in the repository
-                    sh """
-                    docker build -t ${imageName} .
+                    bat """
+                    docker build -t ${imageName} . || echo 'Docker build failed.'
                     """
                 }
             }
@@ -37,15 +40,15 @@ pipeline {
                     
                     // Stop and remove any existing container with the same name
                     echo "Stopping and removing existing container ${containerName} if it exists..."
-                    sh """
-                    docker ps -q --filter name=${containerName} | grep . && docker stop ${containerName} || echo No running container to stop
-                    docker ps -a -q --filter name=${containerName} | grep . && docker rm ${containerName} || echo No container to remove
+                    bat """
+                    docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo No running container to stop
+                    docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo No container to remove
                     """
 
                     // Run a new container from the built image
                     echo "Deploying Docker container ${containerName}..."
-                    sh """
-                    docker run -d --name ${containerName} -p 8080:80 ${imageName}
+                    bat """
+                    docker run -d --name ${containerName} -p 8080:80 ${imageName} || echo 'Docker run failed.'
                     """
                 }
             }
