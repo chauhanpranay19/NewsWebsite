@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                checkout scm
+                // Explicitly specify Git repository and branch
+                git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
         stage('Test') {
@@ -19,23 +20,21 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image ${imageName}..."
-                // Use double quotes for variable expansion in bat commands
-                bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
+                script { // Explicitly define the script block
+                    echo "Building Docker image ${imageName}..."
+                    bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
+                }
             }
         }
         stage('Deploy Docker Container') {
             steps {
-                echo 'Stopping and removing existing container newswebsite_container if it exists...'
-                script {
-                    // Ensure bat commands are within a script block
+                script { // Explicitly define the script block
+                    echo 'Stopping and removing existing container newswebsite_container if it exists...'
                     bat '''
                     docker ps -q --filter name=newswebsite_container | findstr . && docker stop newswebsite_container || echo No running container to stop
                     docker ps -a -q --filter name=newswebsite_container | findstr . && docker rm newswebsite_container || echo No container to remove
                     '''
-                }
-                echo "Deploying Docker container newswebsite_container..."
-                script {
+                    echo "Deploying Docker container newswebsite_container..."
                     bat "docker run -d --name newswebsite_container -p 80:80 ${imageName} || echo 'Docker run failed.'"
                 }
             }
@@ -44,8 +43,8 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up...'
-            script {
+            script { // Explicitly define the script block for cleanup
+                echo 'Cleaning up...'
                 // Add cleanup steps if necessary
             }
         }
