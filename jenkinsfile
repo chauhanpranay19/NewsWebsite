@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo "Building Docker image ${imageName}..."
                 script {
-                    bat 'docker build -t ${imageName} . || echo "Docker build failed."'
+                    bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
                 }
             }
         }
