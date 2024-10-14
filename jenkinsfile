@@ -12,7 +12,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // You can add any actual test commands here
+                // You can add actual test commands here later if necessary
             }
         }
 
@@ -21,9 +21,11 @@ pipeline {
                 script {
                     def imageName = "newswebsite:latest"  // Name for your Docker image
                     echo "Building Docker image ${imageName}..."
-                    
+
                     // Build the Docker image using the Dockerfile in the repository
-                    bat "docker build -t ${imageName} ."
+                    sh """
+                    docker build -t ${imageName} .
+                    """
                 }
             }
         }
@@ -35,14 +37,16 @@ pipeline {
                     
                     // Stop and remove any existing container with the same name
                     echo "Stopping and removing existing container ${containerName} if it exists..."
-                    bat """
-                    docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo No running container to stop
-                    docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo No container to remove
+                    sh """
+                    docker ps -q --filter name=${containerName} | grep . && docker stop ${containerName} || echo No running container to stop
+                    docker ps -a -q --filter name=${containerName} | grep . && docker rm ${containerName} || echo No container to remove
                     """
 
                     // Run a new container from the built image
                     echo "Deploying Docker container ${containerName}..."
-                    bat "docker run -d --name ${containerName} -p 8080:80 newswebsite:latest"
+                    sh """
+                    docker run -d --name ${containerName} -p 8080:80 ${imageName}
+                    """
                 }
             }
         }
@@ -57,5 +61,3 @@ pipeline {
         }
     }
 }
-
-
