@@ -9,7 +9,10 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
+                script {
+                    echo 'Checking out the code...'
+                    git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
+                }
             }
         }
         stage('Check Docker') {
@@ -22,18 +25,24 @@ pipeline {
         }
         stage('Test') {
             steps {
-                echo 'Running tests...'
-                // Add your test commands here
+                script {
+                    echo 'Running tests...'
+                    // Add your test commands here
+                }
             }
         }
         stage('OWASP Dependency Check') {
             steps {
                 script {
                     echo 'Running OWASP Dependency Check...'
-                    def dependencyCheckResult = dependencyCheck additionalArguments: '--format XML',
-                        odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
-                        stopBuild: true // Stop the build if vulnerabilities are found
-                    echo "OWASP Dependency Check completed with result: ${dependencyCheckResult}"
+                    try {
+                        def dependencyCheckResult = dependencyCheck additionalArguments: '--format XML',
+                            odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
+                            stopBuild: true // Stop the build if vulnerabilities are found
+                        echo "OWASP Dependency Check completed with result: ${dependencyCheckResult}"
+                    } catch (Exception e) {
+                        error "OWASP Dependency Check failed: ${e.message}"
+                    }
                 }
             }
         }
@@ -41,7 +50,11 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    bat "docker build -t ${imageName} ."
+                    try {
+                        bat "docker build -t ${imageName} ."
+                    } catch (Exception e) {
+                        error "Docker build failed: ${e.message}"
+                    }
                 }
             }
         }
@@ -76,7 +89,11 @@ pipeline {
         always {
             script {
                 echo "Cleaning up..."
-                bat "docker rmi -f ${imageName} || echo 'No image to remove.'"
+                try {
+                    bat "docker rmi -f ${imageName} || echo 'No image to remove.'"
+                } catch (Exception e) {
+                    echo "Cleanup failed: ${e.message}"
+                }
             }
         }
     }
