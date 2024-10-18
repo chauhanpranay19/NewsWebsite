@@ -29,27 +29,18 @@ pipeline {
         stage('OWASP Dependency Check') {
             steps {
                 echo 'Running OWASP Dependency Check...'
-                dependencyCheck(
-                    odcInstallation: 'OWASP-Dependency-Check', // Update this to your exact installation name
-                    failBuildOnHighSeverity: true, // Fail the build if high severity vulnerabilities are found
-                    failBuildOnMediumSeverity: false, 
-                    failBuildOnLowSeverity: false, 
-                    projectName: 'NewsWebsite',
-                    projectVersion: '1.0',
-                    scanPath: '.', 
-                    outputDirectory: 'dependency-check-report', 
-                    additionalArguments: '--format XML' 
-                )
+                dependencyCheck additionalArguments: '--format XML', // Customize as needed
+                    odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
+                    stopBuild: true, // Fail the build if vulnerabilities are found
+                    scanPath: '.', // Directory to scan (current directory)
+                    reportOutputDirectory: 'dependency-check-report' // Directory to store the report
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    def buildResult = bat script: "docker build -t ${imageName} .", returnStatus: true
-                    if (buildResult != 0) {
-                        error "Docker build failed."
-                    }
+                    bat "docker build -t ${imageName} . || error 'Docker build failed.'"
                 }
             }
         }
@@ -69,10 +60,7 @@ pipeline {
                         }
 
                         echo "Deploying Docker container ${containerName}..."
-                        def runResult = bat script: "docker run -d --name ${containerName} -p 80:80 ${imageName}", returnStatus: true
-                        if (runResult != 0) {
-                            error "Failed to run Docker container ${containerName}."
-                        }
+                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
                         echo "Docker container ${containerName} deployed successfully."
                     } catch (Exception e) {
                         error "Failed during Docker container deployment: ${e.message}"
