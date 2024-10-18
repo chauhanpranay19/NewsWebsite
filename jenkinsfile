@@ -9,7 +9,6 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                echo 'Checking out source code...'
                 git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
@@ -24,23 +23,25 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add your test commands here (e.g., run unit tests, linting)
-                // Example: bat "npm test" for a Node.js application
+                // Add your test commands here
             }
         }
         stage('OWASP Dependency Check') {
             steps {
-                echo 'Running OWASP Dependency Check...'
-                dependencyCheck additionalArguments: '--format XML', // Customize as needed
-                    odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
-                    stopBuild: true // Stop the build if vulnerabilities are found
+                script {
+                    echo 'Running OWASP Dependency Check...'
+                    def dependencyCheckResult = dependencyCheck additionalArguments: '--format XML',
+                        odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
+                        stopBuild: true // Stop the build if vulnerabilities are found
+                    echo "OWASP Dependency Check completed with result: ${dependencyCheckResult}"
+                }
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    bat "docker build -t ${imageName} . || error 'Docker build failed.'"
+                    bat "docker build -t ${imageName} ."
                 }
             }
         }
@@ -49,7 +50,8 @@ pipeline {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
                     try {
-                        def containerExists = bat(script: "docker ps -a -q --filter name=${containerName}", returnStdout: true).trim()
+                        // Stop and remove existing container if it exists
+                        def containerExists = bat(script: "docker ps -q --filter name=${containerName}", returnStdout: true).trim()
                         if (containerExists) {
                             echo "Stopping existing container ${containerName}..."
                             bat "docker stop ${containerName}"
@@ -60,7 +62,7 @@ pipeline {
                         }
 
                         echo "Deploying Docker container ${containerName}..."
-                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName} || error 'Docker run failed.'"
+                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
                         echo "Docker container ${containerName} deployed successfully."
                     } catch (Exception e) {
                         error "Failed during Docker container deployment: ${e.message}"
@@ -69,12 +71,12 @@ pipeline {
             }
         }
     }
+
     post {
         always {
-            echo 'Cleaning up...'
             script {
-                // Optionally remove the Docker image after deployment
-                bat "docker rmi ${imageName} || echo 'No image to remove.'"
+                echo "Cleaning up..."
+                bat "docker rmi -f ${imageName} || echo 'No image to remove.'"
             }
         }
     }
