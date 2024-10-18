@@ -26,6 +26,20 @@ pipeline {
                 // Add your test commands here
             }
         }
+        stage('OWASP Dependency Check') {
+            steps {
+                echo 'Running OWASP Dependency Check...'
+                dependencyCheck(
+                    failBuildOnHighSeverity: true, // Fail the build if high severity vulnerabilities are found
+                    failBuildOnMediumSeverity: false, // You can change this to true if desired
+                    failBuildOnLowSeverity: false, // You can change this to true if desired
+                    projectName: 'NewsWebsite',
+                    projectVersion: '1.0',
+                    scanPath: '.',
+                    outputDirectory: 'dependency-check-report'
+                )
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 script {
@@ -35,29 +49,28 @@ pipeline {
             }
         }
         stage('Deploy Docker Container') {
-    steps {
-        script {
-            echo "Stopping and removing existing container ${containerName} if it exists..."
-            try {
-                def containerExists = bat(script: "docker ps -a -q --filter name=${containerName}", returnStdout: true).trim()
-                if (containerExists) {
-                    echo "Stopping existing container ${containerName}..."
-                    bat "docker stop ${containerName}"
-                    echo "Removing existing container ${containerName}..."
-                    bat "docker rm ${containerName}"
-                } else {
-                    echo "No container to stop or remove."
-                }
+            steps {
+                script {
+                    echo "Stopping and removing existing container ${containerName} if it exists..."
+                    try {
+                        def containerExists = bat(script: "docker ps -a -q --filter name=${containerName}", returnStdout: true).trim()
+                        if (containerExists) {
+                            echo "Stopping existing container ${containerName}..."
+                            bat "docker stop ${containerName}"
+                            echo "Removing existing container ${containerName}..."
+                            bat "docker rm ${containerName}"
+                        } else {
+                            echo "No container to stop or remove."
+                        }
 
-                echo "Deploying Docker container ${containerName}..."
-                bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
-                echo "Docker container ${containerName} deployed successfully."
-            } catch (Exception e) {
-                error "Failed during Docker container deployment: ${e.message}"
+                        echo "Deploying Docker container ${containerName}..."
+                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
+                        echo "Docker container ${containerName} deployed successfully."
+                    } catch (Exception e) {
+                        error "Failed during Docker container deployment: ${e.message}"
+                    }
+                }
             }
         }
-    }
-}
-
     }
 }
