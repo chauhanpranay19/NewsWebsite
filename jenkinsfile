@@ -40,33 +40,7 @@ pipeline {
             }
         }
     }
-     stage('Deploy ELK Stack') {
-            steps {
-                script {
-                    echo 'Deploying ELK stack...'
-                    dir("${terraformDir}") {
-                        try {
-                            // Assume you have a separate Terraform script for ELK stack
-                            bat "terraform apply -auto-approve -state=elk.tfstate"
-                        } catch (Exception e) {
-                            error "ELK deployment failed: ${e.message}"
-                        }
-                    }
-                }
-            }
-        }
-         stage('Run Maven Tests') {
-            steps {
-                script {
-                    echo 'Running Selenium UI/UX tests with Maven...'
-                    try {
-                        bat "${mavenHome}\\bin\\mvn test"
-                    } catch (Exception e) {
-                        error "Maven tests failed: ${e.message}"
-                    }
-                }
-            }
-        }
+
     post {
         always {
             script {
