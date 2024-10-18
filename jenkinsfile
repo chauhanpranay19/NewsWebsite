@@ -32,13 +32,23 @@ pipeline {
             steps {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
-                    bat """
-                    docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo 'No running container to stop'
-                    docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo 'No container to remove'
-                    """
+                    
+                    // Stop the container and capture output
+                    def stopResult = bat(script: """
+                        docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo 'No running container to stop'
+                    """, returnStdout: true).trim()
+                    echo "Stop Result: ${stopResult}"
+
+                    // Remove the container and capture output
+                    def removeResult = bat(script: """
+                        docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo 'No container to remove'
+                    """, returnStdout: true).trim()
+                    echo "Remove Result: ${removeResult}"
+
+                    // Deploy the container
                     echo "Deploying Docker container ${containerName}..."
                     bat """
-                    docker run -d --name ${containerName} -p 80:80 ${imageName} || echo 'Docker run failed.'
+                        docker run -d --name ${containerName} -p 80:80 ${imageName} || echo 'Docker run failed.'
                     """
                 }
             }
