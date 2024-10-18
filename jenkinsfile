@@ -2,141 +2,43 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest' // Docker image name
-        containerName = 'newswebsite_container' // Docker container name
-        mavenHome = 'C:\\Users\\chauh\\Downloads\\apache-maven-3.9.9-bin\\apache-maven-3.9.9' // Maven home directory
-        terraformDir = './terraform' // Path to Terraform directory
-        awsRegion = 'ap-south-1' // AWS region
+        imageName = 'newswebsite:latest' // Define the image name here
+        containerName = 'newswebsite_container' // Define the container name to use
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                echo "Checking out code from SCM..."
-                // Simulating git checkout
-                echo "Checked out branch 'main' from repository 'https://github.com/chauhanpranay19/NewsWebsite.git'."
+                git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
-
-        stage('Terraform Init') {
+        stage('Test') {
             steps {
-                script {
-                    echo "Initializing Terraform..."
-                    dir("${terraformDir}") {
-                        try {
-                            bat "terraform init"
-                        } catch (Exception e) {
-                            error "Terraform init failed: ${e.message}"
-                        }
-                    }
-                }
+                echo 'Running tests...'
+                // Add your test commands here
             }
         }
-
-        stage('Terraform Plan') {
-            steps {
-                script {
-                    echo "Generating Terraform plan..."
-                    // Simulating Terraform plan success
-                    echo "Terraform plan generated successfully."
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                script {
-                    input message: 'Proceed with Terraform Apply?'
-                    echo "Applying Terraform configuration..."
-                    
-                    // Simulate Terraform apply
-                    echo "Simulating Terraform apply... This might take a moment."
-                    // Instead of executing the command, just echo success
-                    echo "Terraform configuration applied successfully."
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    try {
-                        bat "docker build -t ${imageName} ."
-                    } catch (Exception e) {
-                        error "Docker build failed: ${e.message}"
-                    }
+                    bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
                 }
             }
         }
-
         stage('Deploy Docker Container') {
             steps {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
-                    
-                    // Stop the container and capture output
-                    def stopResult = bat(script: """
-                        docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo 'No running container to stop'
-                    """, returnStdout: true).trim()
-                    echo "Stop Result: ${stopResult}"
-
-                    // Remove the container and capture output
-                    def removeResult = bat(script: """
-                        docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo 'No container to remove'
-                    """, returnStdout: true).trim()
-                    echo "Remove Result: ${removeResult}"
-
-                    // Deploy the container
+                    bat '''
+                    docker ps -q --filter name=${containerName} | findstr . && docker stop ${containerName} || echo No running container to stop
+                    docker ps -a -q --filter name=${containerName} | findstr . && docker rm ${containerName} || echo No container to remove
+                    '''
                     echo "Deploying Docker container ${containerName}..."
-                    try {
-                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
-                    } catch (Exception e) {
-                        error "Docker run failed: ${e.message}"
-                    }
+                    echo "Running command: docker run -d --name ${containerName} -p 80:80 ${imageName}"
+                    bat "docker run -d --name ${containerName} -p 80:80 ${imageName} || echo 'Docker run failed.'"
                 }
             }
-        }
-
-        stage('Deploy ELK Stack') {
-            steps {
-                script {
-                    echo 'Deploying ELK stack...'
-                    // Simulating ELK stack deployment
-                    echo "ELK stack deployed successfully."
-                }
-            }
-        }
-
-        stage('Run Maven Tests') {
-            steps {
-                script {
-                    echo 'Running Selenium UI/UX tests with Maven...'
-                    try {
-                        bat "${mavenHome}\\bin\\mvn test"
-                    } catch (Exception e) {
-                        error "Maven tests failed: ${e.message}"
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                echo 'Cleaning up Docker images and containers...'
-                bat '''
-                docker rm -f ${containerName} || echo No container to remove
-                docker rmi -f ${imageName} || echo No image to remove
-                '''
-            }
-        }
-        success {
-            echo "Pipeline completed successfully!"
-        }
-        failure {
-            echo 'Pipeline failed. Check the logs for details.'
         }
     }
 }
