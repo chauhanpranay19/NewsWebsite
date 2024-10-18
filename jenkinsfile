@@ -9,6 +9,7 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
+                echo 'Checking out source code...'
                 git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
@@ -23,7 +24,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add your test commands here
+                // Add your test commands here (e.g., run unit tests, linting)
+                // Example: bat "npm test" for a Node.js application
             }
         }
         stage('OWASP Dependency Check') {
@@ -58,12 +60,21 @@ pipeline {
                         }
 
                         echo "Deploying Docker container ${containerName}..."
-                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
+                        bat "docker run -d --name ${containerName} -p 80:80 ${imageName} || error 'Docker run failed.'"
                         echo "Docker container ${containerName} deployed successfully."
                     } catch (Exception e) {
                         error "Failed during Docker container deployment: ${e.message}"
                     }
                 }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Cleaning up...'
+            script {
+                // Optionally remove the Docker image after deployment
+                bat "docker rmi ${imageName} || echo 'No image to remove.'"
             }
         }
     }
