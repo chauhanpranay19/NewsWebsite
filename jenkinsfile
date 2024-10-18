@@ -30,13 +30,15 @@ pipeline {
             steps {
                 echo 'Running OWASP Dependency Check...'
                 dependencyCheck(
+                    odcInstallation: 'Dependency-Check', // Make sure this matches your OWASP Dependency-Check installation name in Jenkins
                     failBuildOnHighSeverity: true, // Fail the build if high severity vulnerabilities are found
-                    failBuildOnMediumSeverity: false, // You can change this to true if desired
-                    failBuildOnLowSeverity: false, // You can change this to true if desired
+                    failBuildOnMediumSeverity: false, // Change to true if you want to fail on medium as well
+                    failBuildOnLowSeverity: false, // Change to true if you want to fail on low as well
                     projectName: 'NewsWebsite',
                     projectVersion: '1.0',
-                    scanPath: '.',
-                    outputDirectory: 'dependency-check-report'
+                    scanPath: '.', // Path to scan, relative to the workspace
+                    outputDirectory: 'dependency-check-report', // Directory to save the report
+                    additionalArguments: '--format XML' // You can customize the format or add additional arguments if needed
                 )
             }
         }
