@@ -2,14 +2,13 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest'
-        mavenHome = 'C:\\path\\to\\your\\maven'
-        terraformDir = 'C:\\path\\to\\your\\terraform\\directory'
+        imageName = 'newswebsite:latest' // Define the image name here
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
+                echo 'Checking out the repository...'
                 git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
@@ -17,6 +16,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
+                // Add your actual test commands here, for example:
+                // bat 'npm install && npm test'  // if you're using npm for JavaScript testing
             }
         }
 
@@ -32,36 +33,14 @@ pipeline {
         stage('Deploy Docker Container') {
             steps {
                 script {
-                    echo 'Stopping and removing existing container if it exists...'
-                    
-                    // Stop and remove container without failing the pipeline if it doesn't exist
+                    echo 'Stopping and removing existing container newswebsite_container if it exists...'
                     bat '''
-                    (docker ps -q --filter name=newswebsite_container && docker stop newswebsite_container) || echo No running container to stop
-                    (docker ps -a -q --filter name=newswebsite_container && docker rm newswebsite_container) || echo No container to remove
+                    docker ps -q --filter name=newswebsite_container | findstr . && docker stop newswebsite_container || echo "No running container to stop"
+                    docker ps -a -q --filter name=newswebsite_container | findstr . && docker rm newswebsite_container || echo "No container to remove"
                     '''
-                    
-                    echo "Deploying Docker container..."
+
+                    echo "Deploying Docker container newswebsite_container..."
                     bat "docker run -d --name newswebsite_container -p 80:80 ${imageName} || echo 'Docker run failed.'"
-                }
-            }
-        }
-
-        stage('Deploy ELK Stack') {
-            steps {
-                script {
-                    echo 'Deploying ELK stack...'
-                    dir("${terraformDir}") {
-                        bat "terraform apply -auto-approve -state=elk.tfstate || echo 'ELK stack deployment failed.'"
-                    }
-                }
-            }
-        }
-
-        stage('Run Maven Tests') {
-            steps {
-                script {
-                    echo 'Running Selenium UI/UX tests with Maven...'
-                    bat "${mavenHome}\\bin\\mvn test || echo 'Maven tests failed.'"
                 }
             }
         }
@@ -70,8 +49,13 @@ pipeline {
     post {
         always {
             script {
-                echo 'Cleaning up...'
+                echo 'Pipeline completed. Cleaning up...'
+                // Any additional cleanup logic can be added here.
             }
+        }
+
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
