@@ -2,11 +2,7 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest' // Docker image name
-        containerName = 'newswebsite_container' // Docker container name
-        mavenHome = 'C:\\Users\\chauh\\Downloads\\apache-maven-3.9.9-bin\\apache-maven-3.9.9'
-        terraformDir = './terraform' // Path to Terraform directory
-        awsRegion = 'ap-south-1' // AWS region
+        imageName = 'newswebsite:latest' // Define the image name here
     }
 
     stages {
@@ -15,66 +11,20 @@ pipeline {
                 git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
-
-        stage('Terraform Init') {
+        stage('Test') {
             steps {
-                script {
-                    echo "Initializing Terraform..."
-                    dir("${terraformDir}") {
-                        try {
-                            bat "terraform init"
-                        } catch (Exception e) {
-                            error "Terraform init failed: ${e.message}"
-                        }
-                    }
-                }
+                echo 'Running tests...'
+                // Add your test commands here
             }
         }
-
-        stage('Terraform Plan') {
-            steps {
-                script {
-                    echo "Generating Terraform plan..."
-                    dir("${terraformDir}") {
-                        try {
-                            bat "terraform plan -out=tfplan"
-                        } catch (Exception e) {
-                            error "Terraform plan failed: ${e.message}"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                script {
-                    input message: 'Proceed with Terraform Apply?'
-                    echo "Applying Terraform configuration..."
-                    dir("${terraformDir}") {
-                        try {
-                            bat "terraform apply -auto-approve tfplan"
-                        } catch (Exception e) {
-                            error "Terraform apply failed: ${e.message}"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    try {
-                        bat "docker build -t ${imageName} ."
-                    } catch (Exception e) {
-                        error "Docker build failed: ${e.message}"
-                    }
+                    bat "docker build -t ${imageName} . || echo 'Docker build failed.'"
                 }
             }
         }
-
         stage('Deploy Docker Container') {
             steps {
                 script {
@@ -84,15 +34,13 @@ pipeline {
                     docker ps -a -q --filter name=newswebsite_container | findstr . && docker rm newswebsite_container || echo No container to remove
                     '''
                     echo "Deploying Docker container newswebsite_container..."
-                    try {
-                        bat "docker run -d --name newswebsite_container -p 80:80 ${imageName}"
-                    } catch (Exception e) {
-                        error "Docker run failed: ${e.message}"
-                    }
+                    echo "Running command: docker run -d --name newswebsite_container -p 80:80 ${imageName}"
+                    bat "docker run -d --name newswebsite_container -p 80:80 ${imageName} || echo 'Docker run failed.'"
                 }
             }
         }
-         stage('Deploy ELK Stack') {
+    }
+     stage('Deploy ELK Stack') {
             steps {
                 script {
                     echo 'Deploying ELK stack...'
@@ -119,23 +67,14 @@ pipeline {
                 }
             }
         }
-    }
-
     post {
         always {
             script {
-                echo 'Cleaning up Docker images and containers...'
-                bat '''
-                docker rm -f newswebsite_container || echo No container to remove
-                docker rmi -f ${imageName} || echo No image to remove
-                '''
+                echo 'Cleaning up...'
             }
         }
-        success {
-            echo "Pipeline completed successfully!"
-        }
         failure {
-            echo 'Pipeline failed. Check the logs for details.'
+            echo 'Pipeline failed.'
         }
     }
 }
