@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest' // Define the Docker image name
-        mavenHome = 'C:\\path\\to\\your\\maven' // Adjust this to your Maven installation path
-        terraformDir = 'C:\\path\\to\\your\\terraform\\directory' // Directory containing Terraform scripts
+        imageName = 'newswebsite:latest'
+        mavenHome = 'C:\\path\\to\\your\\maven'
+        terraformDir = 'C:\\path\\to\\your\\terraform\\directory'
     }
 
     stages {
@@ -17,7 +17,6 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Add your test commands here
             }
         }
 
@@ -34,10 +33,13 @@ pipeline {
             steps {
                 script {
                     echo 'Stopping and removing existing container if it exists...'
+                    
+                    // Stop and remove container without failing the pipeline if it doesn't exist
                     bat '''
-                    docker ps -q --filter name=newswebsite_container | findstr . && docker stop newswebsite_container || echo No running container to stop
-                    docker ps -a -q --filter name=newswebsite_container | findstr . && docker rm newswebsite_container || echo No container to remove
+                    (docker ps -q --filter name=newswebsite_container && docker stop newswebsite_container) || echo No running container to stop
+                    (docker ps -a -q --filter name=newswebsite_container && docker rm newswebsite_container) || echo No container to remove
                     '''
+                    
                     echo "Deploying Docker container..."
                     bat "docker run -d --name newswebsite_container -p 80:80 ${imageName} || echo 'Docker run failed.'"
                 }
@@ -69,7 +71,6 @@ pipeline {
         always {
             script {
                 echo 'Cleaning up...'
-                // You can add cleanup actions here if needed.
             }
         }
     }
