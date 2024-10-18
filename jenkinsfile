@@ -31,9 +31,7 @@ pipeline {
                 echo 'Running OWASP Dependency Check...'
                 dependencyCheck additionalArguments: '--format XML', // Customize as needed
                     odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
-                    stopBuild: true, // Fail the build if vulnerabilities are found
-                    scanPath: '.', // Directory to scan (current directory)
-                    reportOutputDirectory: 'dependency-check-report' // Directory to store the report
+                    stopBuild: true // Stop the build if vulnerabilities are found
             }
         }
         stage('Build Docker Image') {
