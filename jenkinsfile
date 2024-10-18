@@ -48,7 +48,10 @@ pipeline {
                 script {
                     input message: 'Proceed with Terraform Apply?'
                     echo "Applying Terraform configuration..."
-                    // Simulating Terraform apply success
+                    
+                    // Simulate Terraform apply
+                    echo "Simulating Terraform apply... This might take a moment."
+                    // Instead of executing the command, just echo success
                     echo "Terraform configuration applied successfully."
                 }
             }
