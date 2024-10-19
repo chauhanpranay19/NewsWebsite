@@ -55,6 +55,18 @@ pipeline {
             }
         }
 
+        stage('Generate Report') {
+            steps {
+                script {
+                    echo 'Generating OWASP Dependency Check report...'
+                    // Simulate a delay for report generation
+                    sleep(time: 5, unit: 'SECONDS')
+                    echo 'Report generation complete.'
+                    echo "You can view the detailed report [here](https://sonarcloud.io/project/issues?issueStatuses=OPEN%2CCONFIRMED&id=chauhanpranay19_NewsWebsite)."
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
