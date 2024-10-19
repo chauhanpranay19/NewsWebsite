@@ -80,7 +80,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Docker Container') {
+         stage('Deploy Docker Container') {
             steps {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
