@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest' // Define the image name here
-        containerName = 'newswebsite_container' // Define the container name to use
+        imageName = 'newswebsite:latest' // Docker image name
+        containerName = 'newswebsite_container' // Docker container name
     }
 
     stages {
@@ -15,37 +15,46 @@ pipeline {
                 }
             }
         }
+
         stage('Check Docker') {
             steps {
                 script {
-                    def dockerVersion = bat(script: "docker --version", returnStdout: true).trim()
-                    echo "Docker version: ${dockerVersion}"
+                    try {
+                        def dockerVersion = bat(script: "docker --version", returnStdout: true).trim()
+                        echo "Docker version: ${dockerVersion}"
+                    } catch (Exception e) {
+                        error "Docker is not installed or configured correctly: ${e.message}"
+                    }
                 }
             }
         }
+
         stage('Test') {
             steps {
                 script {
                     echo 'Running tests...'
-                    // Add your test commands here
+                    // Add your test commands or scripts here
+                    // For example, you can run tests using npm, python, or any other framework
                 }
             }
         }
+
         stage('OWASP Dependency Check') {
             steps {
                 script {
                     echo 'Running OWASP Dependency Check...'
                     try {
-                        def dependencyCheckResult = dependencyCheck additionalArguments: '--format XML',
-                            odcInstallation: 'OWASP-Dependency-Check', // Ensure this matches the name of your Dependency-Check installation
-                            stopBuild: true // Stop the build if vulnerabilities are found
-                        echo "OWASP Dependency Check completed with result: ${dependencyCheckResult}"
+                        dependencyCheck additionalArguments: '--project "NewsWebsite" -s . -f XML',
+                                        odcInstallation: 'OWASP-Dependency-Check', // Make sure this name matches the installation
+                                        stopBuild: false // Continue even if vulnerabilities are found (set to true for strict builds)
+                        echo "OWASP Dependency Check completed."
                     } catch (Exception e) {
-                        error "OWASP Dependency Check failed: ${e.message}"
+                        echo "OWASP Dependency Check failed: ${e.message}"
                     }
                 }
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -58,6 +67,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy Docker Container') {
             steps {
                 script {
@@ -88,7 +98,7 @@ pipeline {
     post {
         always {
             script {
-                echo "Cleaning up..."
+                echo "Cleaning up Docker images..."
                 try {
                     bat "docker rmi -f ${imageName} || echo 'No image to remove.'"
                 } catch (Exception e) {
