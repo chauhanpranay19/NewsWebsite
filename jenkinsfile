@@ -2,92 +2,60 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'newswebsite:latest' // Docker image name
-        containerName = 'newswebsite_container' // Docker container name
+        imageName = 'newswebsite:latest' // Define the image name here
+        containerName = 'newswebsite_container' // Define the container name to use
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                script {
-                    echo 'Checking out the code...'
-                    git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
-                }
+                git url: 'https://github.com/chauhanpranay19/NewsWebsite.git', branch: 'main'
             }
         }
-
         stage('Check Docker') {
             steps {
                 script {
-                    echo 'Checking Docker status...'
-                    try {
-                        // Check if Docker service is running
-                        def dockerStatus = bat(script: 'docker info', returnStdout: true).trim()
-                        echo "Docker is running: ${dockerStatus}"
-                    } catch (Exception e) {
-                        error "Docker is not running or not installed: ${e.message}. Please check Docker installation and ensure it is running."
-                    }
+                    def dockerVersion = bat(script: "docker --version", returnStdout: true).trim()
+                    echo "Docker version: ${dockerVersion}"
                 }
             }
         }
-
         stage('Test') {
             steps {
-                script {
-                    echo 'Running tests...'
-                    // Add your test commands or scripts here
-                }
+                echo 'Running tests...'
+                // Add your test commands here
             }
         }
-
         stage('OWASP Dependency Check') {
             steps {
-                script {
-                    echo 'Running OWASP Dependency Check...'
-                    try {
-                        dependencyCheck additionalArguments: '--project "NewsWebsite" -s . -f XML',
-                                        odcInstallation: 'OWASP-Dependency-Check',
-                                        stopBuild: false // Continue even if vulnerabilities are found
-                        echo "OWASP Dependency Check completed."
-                    } catch (Exception e) {
-                        echo "OWASP Dependency Check failed: ${e.message}"
-                    }
-                }
+                echo 'Running OWASP Dependency Check...'
+                dependencyCheck(
+                    odcInstallation: 'Dependency-Check', // Make sure this matches your OWASP Dependency-Check installation name in Jenkins
+                    failBuildOnHighSeverity: true, // Fail the build if high severity vulnerabilities are found
+                    failBuildOnMediumSeverity: false, // Change to true if you want to fail on medium as well
+                    failBuildOnLowSeverity: false, // Change to true if you want to fail on low as well
+                    projectName: 'NewsWebsite',
+                    projectVersion: '1.0',
+                    scanPath: '.', // Path to scan, relative to the workspace
+                    outputDirectory: 'dependency-check-report', // Directory to save the report
+                    additionalArguments: '--format XML' // You can customize the format or add additional arguments if needed
+                )
             }
         }
-
-        stage('Generate Report') {
-            steps {
-                script {
-                    echo 'Generating OWASP Dependency Check report...'
-                    sleep(time: 5, unit: 'SECONDS')
-                    echo 'Report generation complete.'
-                    echo "You can view the detailed report [here](https://sonarcloud.io/project/issues?issueStatuses=OPEN%2CCONFIRMED&id=chauhanpranay19_NewsWebsite)."
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "Building Docker image ${imageName}..."
-                    try {
-                        bat "docker build -t ${imageName} ."
-                        echo "Docker image ${imageName} built successfully."
-                    } catch (Exception e) {
-                        error "Docker build failed: ${e.message}. Ensure the Dockerfile is valid and Docker is running."
-                    }
+                    bat "docker build -t ${imageName} . || error 'Docker build failed.'"
                 }
             }
         }
-
         stage('Deploy Docker Container') {
             steps {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
                     try {
-                        // Check if the container exists
-                        def containerExists = bat(script: "docker ps -q --filter name=${containerName}", returnStdout: true).trim()
+                        def containerExists = bat(script: "docker ps -a -q --filter name=${containerName}", returnStdout: true).trim()
                         if (containerExists) {
                             echo "Stopping existing container ${containerName}..."
                             bat "docker stop ${containerName}"
@@ -101,21 +69,8 @@ pipeline {
                         bat "docker run -d --name ${containerName} -p 80:80 ${imageName}"
                         echo "Docker container ${containerName} deployed successfully."
                     } catch (Exception e) {
-                        error "Failed during Docker container deployment: ${e.message}. Please ensure Docker is running correctly."
+                        error "Failed during Docker container deployment: ${e.message}"
                     }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                echo "Cleaning up Docker images..."
-                try {
-                    bat "docker rmi -f ${imageName} || echo 'No image to remove.'"
-                } catch (Exception e) {
-                    echo "Cleanup failed: ${e.message}. Continuing with pipeline."
                 }
             }
         }
