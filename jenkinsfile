@@ -5,7 +5,7 @@ pipeline {
         imageName = 'newswebsite:latest' // Docker image name
         containerName = 'newswebsite_container' // Docker container name
     }
-//
+
     stages {
         stage('Checkout SCM') {
             steps {
@@ -86,7 +86,7 @@ pipeline {
                 script {
                     echo "Stopping and removing existing container ${containerName} if it exists..."
                     try {
-                        // Stop and remove the existing container if it exists
+                        // Check if the container exists
                         def containerExists = bat(script: "docker ps -q --filter name=${containerName}", returnStdout: true).trim()
                         if (containerExists) {
                             echo "Stopping existing container ${containerName}..."
