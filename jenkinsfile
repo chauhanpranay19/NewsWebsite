@@ -5,7 +5,7 @@ pipeline {
         imageName = 'newswebsite:latest' // Docker image name
         containerName = 'newswebsite_container' // Docker container name
     }
-
+//
     stages {
         stage('Checkout SCM') {
             steps {
