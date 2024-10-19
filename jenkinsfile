@@ -36,7 +36,6 @@ pipeline {
                 script {
                     echo 'Running tests...'
                     // Add your test commands or scripts here
-                    // For example, you can run tests using npm, python, or any other framework
                 }
             }
         }
